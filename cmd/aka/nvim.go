@@ -15,6 +15,7 @@ func nvimCmd() *cobra.Command {
 		Use:  "install",
 		RunE: install.Run,
 	}
+	installCmd.Flags().BoolVar(&install.InstallPlugin, "plugin", true, "install plugin")
 
 	cmd.AddCommand(installCmd)
 
