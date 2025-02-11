@@ -19,9 +19,10 @@ func (n *NvimInstallCmd) Run(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	installPath := filepath.Join(homeDir, "tools", "nvim")
+	os.RemoveAll(installPath)
 	os.MkdirAll(installPath, 0755)
 
-	download := exec.Command("curl", "-L", "-o", "nvim.tar.gz", "https://github.com/neovim/neovim/releases/download/v0.10.1/nvim-linux64.tar.gz")
+	download := exec.Command("curl", "-L", "-o", "nvim.tar.gz", "https://github.com/neovim/neovim/releases/download/v0.10.4/nvim-linux64.tar.gz")
 	download.Stdout = os.Stdout
 	download.Stderr = os.Stderr
 	if err := download.Run(); err != nil {
@@ -47,7 +48,7 @@ func (n *NvimInstallCmd) Run(cmd *cobra.Command, args []string) error {
 
 	if n.InstallPlugin {
 		nvimPluginDir := filepath.Join(homeDir, ".config", "nvim")
-		os.Remove(nvimPluginDir)
+		os.RemoveAll(nvimPluginDir)
 		os.MkdirAll(filepath.Dir(nvimPluginDir), 0755)
 		pluginDownload := exec.Command("git", "clone", "https://github.com/pigfall/nvimc2.git", nvimPluginDir)
 		pluginDownload.Stdout = os.Stdout
