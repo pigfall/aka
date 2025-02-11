@@ -15,6 +15,7 @@ func main() {
 	cmd.AddCommand(
 		k3sCmd(),
 		k8sCmd(),
+		nvimCmd(),
 	)
 
 	if err := cmd.Execute(); err != nil {
