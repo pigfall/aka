@@ -22,7 +22,7 @@ func (n *NvimInstallCmd) Run(cmd *cobra.Command, args []string) error {
 	os.RemoveAll(installPath)
 	os.MkdirAll(installPath, 0755)
 
-	download := exec.Command("curl", "-L", "-o", "nvim.tar.gz", "https://github.com/neovim/neovim/releases/download/v0.10.4/nvim-linux64.tar.gz")
+	download := exec.Command("curl", "-L", "-o", "nvim.tar.gz", "https://github.com/neovim/neovim/releases/download/v0.10.4/nvim-linux-x86_64.tar.gz")
 	download.Stdout = os.Stdout
 	download.Stderr = os.Stderr
 	if err := download.Run(); err != nil {
