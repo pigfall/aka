@@ -14,6 +14,10 @@ type NvimInstallCmd struct {
 }
 
 func (n *NvimInstallCmd) Run(cmd *cobra.Command, args []string) error {
+	return nvimInstall(n.InstallPlugin)
+}
+
+func nvimInstall(installPlugin bool) error {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
 		return err
@@ -22,6 +26,7 @@ func (n *NvimInstallCmd) Run(cmd *cobra.Command, args []string) error {
 	os.RemoveAll(installPath)
 	os.MkdirAll(installPath, 0755)
 
+	os.Remove("nvim.tar.gz")
 	download := exec.Command("curl", "-L", "-o", "nvim.tar.gz", "https://github.com/neovim/neovim/releases/download/v0.10.4/nvim-linux-x86_64.tar.gz")
 	download.Stdout = os.Stdout
 	download.Stderr = os.Stderr
@@ -36,7 +41,7 @@ func (n *NvimInstallCmd) Run(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	export := `export PATH=$PATH:` + installPath + `/bin`
+	export := "\nexport PATH=$PATH:" + installPath + `/bin`
 	bashrc, err := os.OpenFile(filepath.Join(homeDir, ".bashrc"), os.O_APPEND|os.O_WRONLY, 0644)
 	if err != nil {
 		return fmt.Errorf("Open %s: %w", filepath.Join(homeDir, ".bashrc"), err)
@@ -46,7 +51,7 @@ func (n *NvimInstallCmd) Run(cmd *cobra.Command, args []string) error {
 	}
 	bashrc.Close()
 
-	if n.InstallPlugin {
+	if installPlugin {
 		nvimPluginDir := filepath.Join(homeDir, ".config", "nvim")
 		os.RemoveAll(nvimPluginDir)
 		os.MkdirAll(filepath.Dir(nvimPluginDir), 0755)
@@ -65,4 +70,5 @@ func (n *NvimInstallCmd) Run(cmd *cobra.Command, args []string) error {
 	}
 
 	return nil
+
 }

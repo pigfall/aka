@@ -16,7 +16,10 @@ func main() {
 		k3sCmd(),
 		k8sCmd(),
 		nvimCmd(),
+		personalizeCmd(),
 	)
+
+	cmd.SilenceUsage = true
 
 	if err := cmd.Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
