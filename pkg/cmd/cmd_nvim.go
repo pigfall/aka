@@ -56,7 +56,7 @@ func (n *NvimInstallCmd) Run(cmd *cobra.Command, args []string) error {
 		if err := pluginDownload.Run(); err != nil {
 			return fmt.Errorf("Download nvim plugin: %w", err)
 		}
-		installPlugin := exec.Command(filepath.Join(installPath, "bin", "nvim"), "-c", "PlugInstall", "-c", "qa")
+		installPlugin := exec.Command(filepath.Join(installPath, "bin", "nvim"), "-u", filepath.Join(nvimPluginDir, "plugins.vim"), "--headless", "-c", "PlugInstall", "-c", "qa")
 		installPlugin.Stdout = os.Stdout
 		installPlugin.Stderr = os.Stderr
 		if err := installPlugin.Run(); err != nil {
