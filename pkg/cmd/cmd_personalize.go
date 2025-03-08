@@ -12,7 +12,6 @@ import (
 )
 
 const craftingSandboxSnapshotIncludes = `
-.vscode-server/extensions
 .vscode-remote/extensions
 .snapshot.personal
 .gitconfig

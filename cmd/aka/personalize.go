@@ -8,7 +8,7 @@ import (
 func personalizeCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use: "personalize",
-		Short: "pl",
+		Aliases: []string{"pl"},
 	}
 
 	git := pkgcmd.PersonalizeGitCmd{}
