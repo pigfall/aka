@@ -36,10 +36,18 @@ func personalizeCmd() *cobra.Command {
 		RunE: vscode.Run,
 	}
 
+	// personalize kitty terminal.
+	kitty := pkgcmd.PersonalizeKittyCmd{}
+	kittyCmd := &cobra.Command{
+		Use:  "kitty",
+		RunE: kitty.Run,
+	}
+
 	cmd.AddCommand(
 		gitCmd,
 		craftingSandboxCmd,
 		vscodeCmd,
+		kittyCmd,
 	)
 
 	return cmd

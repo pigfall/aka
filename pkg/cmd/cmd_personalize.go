@@ -37,15 +37,34 @@ const vscodeShortcutJSONConfig = `
 ]
 `
 
+const kittyConfig = `
+font_size 14.0
+
+map alt+1 goto_tab 1
+map alt+2 goto_tab 2
+map alt+3 goto_tab 3
+map alt+4 goto_tab 4
+map alt+5 goto_tab 5
+map alt+6 goto_tab 6
+
+map ctrl+c send_text all \x03
+`
+
+// Personalize git.
 type PersonalizeGitCmd struct {
 }
 
+// Personalize crafting sandbox.
 type PersonalizeCraftingSandboxCmd struct {
 	SnapshotName string
 }
 
+// Personalize vscode.
 type PersonalizeVscodeCmd struct {
 }
+
+// Personalize kitty terminal
+type PersonalizeKittyCmd struct{}
 
 func (c *PersonalizeGitCmd) Run(cmd *cobra.Command, args []string) error {
 	return personalizeGit()
@@ -134,6 +153,31 @@ func (c *PersonalizeVscodeCmd) Run(cobraCmd *cobra.Command, args []string) error
 		return fmt.Errorf("write to %s error: %w", configLocation, err)
 	}
 
+	return nil
+}
+
+func (c *PersonalizeKittyCmd) Run(cobraCmd *cobra.Command, args []string) error {
+	var configPath string
+	switch ostype := runtime.GOOS; ostype {
+	case "darwin", "linux":
+		userHomePath, err := os.UserHomeDir()
+		if err != nil {
+			return fmt.Errorf("get user home directory error: %w", err)
+		}
+		configPath = filepath.Join(userHomePath, ".config/kitty/kitty.config")
+	case "windows":
+		userConfigPath, err := os.UserConfigDir()
+		if err != nil {
+			return fmt.Errorf("get user config directory error: %w", err)
+		}
+		configPath = filepath.Join(userConfigPath, "kitty", "kitty.config")
+	default:
+		return fmt.Errorf("unsupported platform: %s", ostype)
+	}
+	os.MkdirAll(filepath.Dir(configPath), os.ModePerm)
+	if err := os.WriteFile(configPath, []byte(kittyConfig), os.ModePerm); err != nil {
+		return fmt.Errorf("write to %s error: %w", configPath, err)
+	}
 	return nil
 }
 
