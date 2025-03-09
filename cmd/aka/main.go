@@ -18,6 +18,7 @@ func main() {
 		nvimCmd(),
 		personalizeCmd(),
 		nodejsCmd(),
+		cipherCmd(),
 	)
 
 	cmd.SilenceUsage = true
