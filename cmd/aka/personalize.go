@@ -29,9 +29,17 @@ func personalizeCmd() *cobra.Command {
 		"snapshot name",
 	)
 
+	// personalize vscode.
+	vscode := pkgcmd.PersonalizeVscodeCmd{}
+	vscodeCmd := &cobra.Command{
+		Use:  "vscode",
+		RunE: vscode.Run,
+	}
+
 	cmd.AddCommand(
 		gitCmd,
 		craftingSandboxCmd,
+		vscodeCmd,
 	)
 
 	return cmd

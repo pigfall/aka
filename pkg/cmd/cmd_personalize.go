@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 
 	toml "github.com/pelletier/go-toml/v2"
 	"github.com/spf13/cobra"
@@ -21,11 +22,29 @@ tools
 .vim
 `
 
+const vscodeShortcutJSONConfig = `
+[
+{
+    "key":"ctrl+o",
+    "command":"editor.action.triggerSuggest",
+    "when": "editorTextFocus && vim.active && vim.mode=='Insert'"
+},
+{
+    "key": "ctrl+e",
+    "command": "cursorEnd",
+    "when": "vim.active && vim.mode=='Insert'"
+}
+]
+`
+
 type PersonalizeGitCmd struct {
 }
 
 type PersonalizeCraftingSandboxCmd struct {
 	SnapshotName string
+}
+
+type PersonalizeVscodeCmd struct {
 }
 
 func (c *PersonalizeGitCmd) Run(cmd *cobra.Command, args []string) error {
@@ -94,6 +113,30 @@ func (c *PersonalizeCraftingSandboxCmd) Run(cobraCmd *cobra.Command, args []stri
 	return nil
 }
 
+func (c *PersonalizeVscodeCmd) Run(cobraCmd *cobra.Command, args []string) error {
+	var configLocation string
+	userConfigPath, err := os.UserConfigDir()
+	if err != nil {
+		return fmt.Errorf("get user config directory error: %w", err)
+	}
+	switch ostype := runtime.GOOS; ostype {
+	case "darwin":
+		configLocation = filepath.Join(userConfigPath, "Code", "User", "keybindings.json")
+	case "windows":
+		configLocation = filepath.Join(userConfigPath, "Code", "User", "keybindings.json")
+	case "linux":
+		configLocation = filepath.Join(userConfigPath, "Code", "User", "keybindings.json")
+	default:
+		return fmt.Errorf("unsupported platform: %s", ostype)
+	}
+
+	if err := os.WriteFile(configLocation, []byte(vscodeShortcutJSONConfig), os.ModePerm); err != nil {
+		return fmt.Errorf("write to %s error: %w", configLocation, err)
+	}
+
+	return nil
+}
+
 func personalizeGit() error {
 	userHomePath, err := os.UserHomeDir()
 	if err != nil {
@@ -146,5 +189,4 @@ func personalizeGit() error {
 	}
 
 	return os.WriteFile(gitConfigFilePath, b, os.ModePerm)
-
 }
