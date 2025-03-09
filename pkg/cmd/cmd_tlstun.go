@@ -15,6 +15,8 @@ type TLSTunInstallCmd struct {
 
 type TLSTunClientCmd struct{}
 
+type TLSTunServerCmd struct{}
+
 func (c *TLSTunClientCmd) Run(_ *cobra.Command, args []string) error {
 	if len(args) == 0 {
 		return fmt.Errorf("Please provide server address")

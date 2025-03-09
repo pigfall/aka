@@ -296,5 +296,23 @@ func personalizeTLSTun(password string) error {
 		return fmt.Errorf("write to %s error: %w", clientKeyPath, err)
 	}
 
+	serverCert, err := fs.ReadFile(assets, "assets/tsltun-servercert.pem")
+	if err != nil {
+		return err
+	}
+	serverKey, err := fs.ReadFile(assets, "assets/tlstun-serverkey.pem")
+	if err != nil {
+		return err
+	}
+
+	serverCertPath := filepath.Join(userHomePath, "tsltun-servercert.pem")
+	if err := os.WriteFile(serverCertPath, serverCert, os.ModePerm); err != nil {
+		return fmt.Errorf("write to %s error: %w", serverCertPath, err)
+	}
+	serverKeyPath := filepath.Join(userHomePath, "tlstun-serverkey.pem")
+	if err := os.WriteFile(serverKeyPath, serverKey, os.ModePerm); err != nil {
+		return fmt.Errorf("write to %s error: %w", serverKeyPath, err)
+	}
+
 	return nil
 }
