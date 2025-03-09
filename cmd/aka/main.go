@@ -17,6 +17,7 @@ func main() {
 		k8sCmd(),
 		nvimCmd(),
 		personalizeCmd(),
+    nodejsCmd(),
 	)
 
 	cmd.SilenceUsage = true
