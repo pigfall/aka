@@ -10,14 +10,19 @@ import (
 )
 
 type NvimInstallCmd struct {
-	InstallPlugin bool
+	InstallPlugin       bool
+	InstallNodeJSForCoC bool
+	NodeJSVersionForCoC string
 }
 
 func (n *NvimInstallCmd) Run(cmd *cobra.Command, args []string) error {
-	return nvimInstall(n.InstallPlugin)
+	if !n.InstallNodeJSForCoC {
+		n.NodeJSVersionForCoC = ""
+	}
+	return nvimInstall(n.InstallPlugin, n.NodeJSVersionForCoC)
 }
 
-func nvimInstall(installPlugin bool) error {
+func nvimInstall(installPlugin bool, nodejsVersionForCoC string) error {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
 		return err
@@ -52,6 +57,12 @@ func nvimInstall(installPlugin bool) error {
 	bashrc.Close()
 
 	if installPlugin {
+		if nodejsVersionForCoC != "" {
+			_, err := installNodejs(nodejsVersionForCoC, "nodejs-coc")
+			if err != nil {
+				return fmt.Errorf("install nodejs for coc: %w", err)
+			}
+		}
 		nvimPluginDir := filepath.Join(homeDir, ".config", "nvim")
 		os.RemoveAll(nvimPluginDir)
 		os.MkdirAll(filepath.Dir(nvimPluginDir), 0755)

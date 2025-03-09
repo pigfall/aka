@@ -40,7 +40,7 @@ func (c *PersonalizeCraftingSandboxCmd) Run(cobraCmd *cobra.Command, args []stri
 	if err := personalizeGit(); err != nil {
 		return fmt.Errorf("personalize gitconfig: %w", err)
 	}
-	if err := nvimInstall(true); err != nil {
+	if err := nvimInstall(true, ""); err != nil {
 		return fmt.Errorf("install nvim: %w", err)
 	}
 

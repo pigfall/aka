@@ -7,7 +7,7 @@ import (
 
 func personalizeCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use: "personalize",
+		Use:     "personalize",
 		Aliases: []string{"pl"},
 	}
 
