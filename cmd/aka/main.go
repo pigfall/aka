@@ -19,6 +19,7 @@ func main() {
 		personalizeCmd(),
 		nodejsCmd(),
 		cipherCmd(),
+		tlstunCmd(),
 	)
 
 	cmd.SilenceUsage = true
