@@ -1,8 +1,10 @@
 package cmd
 
 import (
+	"embed"
 	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -11,6 +13,9 @@ import (
 	toml "github.com/pelletier/go-toml/v2"
 	"github.com/spf13/cobra"
 )
+
+//go:embed assets/*
+var assets embed.FS
 
 const craftingSandboxSnapshotIncludes = `
 .vscode-remote/extensions
@@ -65,6 +70,15 @@ type PersonalizeVscodeCmd struct {
 
 // Personalize kitty terminal
 type PersonalizeKittyCmd struct{}
+
+// Personalize tlstun
+type PersonalizeTLSTun struct {
+	Password string
+}
+
+func (c *PersonalizeTLSTun) Run(cmd *cobra.Command, args []string) error {
+	return personalizeTLSTun(c.Password)
+}
 
 func (c *PersonalizeGitCmd) Run(cmd *cobra.Command, args []string) error {
 	return personalizeGit()
@@ -233,4 +247,54 @@ func personalizeGit() error {
 	}
 
 	return os.WriteFile(gitConfigFilePath, b, os.ModePerm)
+}
+
+func personalizeTLSTun(password string) error {
+	userHomePath, err := os.UserHomeDir()
+	if err != nil {
+		return err
+	}
+
+	ca, err := fs.ReadFile(assets, "assets/acnutslt")
+	if err != nil {
+		return fmt.Errorf("read ca error: %w", err)
+	}
+	clientCert, err := fs.ReadFile(assets, "assets/clicnutslt")
+	if err != nil {
+		return fmt.Errorf("read client cert error: %w", err)
+	}
+	clientKey, err := fs.ReadFile(assets, "assets/cliknutslt")
+	if err != nil {
+		return fmt.Errorf("read client key error: %w", err)
+	}
+
+	ca, err = decrypt(ca, password)
+	if err != nil {
+		return fmt.Errorf("decrypt ca error: %w", err)
+	}
+
+	clientCert, err = decrypt(clientCert, password)
+	if err != nil {
+		return fmt.Errorf("decrypt client cert error: %w", err)
+	}
+
+	clientKey, err = decrypt(clientKey, password)
+	if err != nil {
+		return fmt.Errorf("decrypt client key error: %w", err)
+	}
+
+	caPath := filepath.Join(userHomePath, "tlstun-ca.pem")
+	if err := os.WriteFile(caPath, ca, os.ModePerm); err != nil {
+		return fmt.Errorf("write to %s error: %w", caPath, err)
+	}
+	clientCertPath := filepath.Join(userHomePath, "tlstun-clientcert.pem")
+	if err := os.WriteFile(clientCertPath, clientCert, os.ModePerm); err != nil {
+		return fmt.Errorf("write to %s error: %w", clientCertPath, err)
+	}
+	clientKeyPath := filepath.Join(userHomePath, "tlstun-clientkey.pem")
+	if err := os.WriteFile(clientKeyPath, clientKey, os.ModePerm); err != nil {
+		return fmt.Errorf("write to %s error: %w", clientKeyPath, err)
+	}
+
+	return nil
 }
