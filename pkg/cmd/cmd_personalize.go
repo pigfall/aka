@@ -178,13 +178,13 @@ func (c *PersonalizeKittyCmd) Run(cobraCmd *cobra.Command, args []string) error 
 		if err != nil {
 			return fmt.Errorf("get user home directory error: %w", err)
 		}
-		configPath = filepath.Join(userHomePath, ".config/kitty/kitty.config")
+		configPath = filepath.Join(userHomePath, ".config/kitty/kitty.conf")
 	case "windows":
 		userConfigPath, err := os.UserConfigDir()
 		if err != nil {
 			return fmt.Errorf("get user config directory error: %w", err)
 		}
-		configPath = filepath.Join(userConfigPath, "kitty", "kitty.config")
+		configPath = filepath.Join(userConfigPath, "kitty", "kitty.conf")
 	default:
 		return fmt.Errorf("unsupported platform: %s", ostype)
 	}
