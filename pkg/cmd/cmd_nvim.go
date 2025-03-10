@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 
 	"github.com/spf13/cobra"
 )
@@ -27,12 +28,23 @@ func nvimInstall(installPlugin bool, nodejsVersionForCoC string) error {
 	if err != nil {
 		return err
 	}
+
+	urls := map[string]string{
+		"linux-amd64":  "https://github.com/neovim/neovim/releases/download/v0.10.4/nvim-linux-x86_64.tar.gz",
+		"darwin-arm64": "https://github.com/neovim/neovim/releases/download/v0.10.4/nvim-macos-arm64.tar.gz",
+	}
+	platform := fmt.Sprintf("%s-%s", runtime.GOOS, runtime.GOARCH)
+	downloadURL := urls[platform]
+	if downloadURL == "" {
+		return fmt.Errorf("unsupported platform %s", platform)
+	}
+
 	installPath := filepath.Join(homeDir, "tools", "nvim")
 	os.RemoveAll(installPath)
 	os.MkdirAll(installPath, 0755)
 
 	os.Remove("nvim.tar.gz")
-	download := exec.Command("curl", "-L", "-o", "nvim.tar.gz", "https://github.com/neovim/neovim/releases/download/v0.10.4/nvim-linux-x86_64.tar.gz")
+	download := exec.Command("curl", "-L", "-o", "nvim.tar.gz", downloadURL)
 	download.Stdout = os.Stdout
 	download.Stderr = os.Stderr
 	if err := download.Run(); err != nil {
@@ -46,15 +58,24 @@ func nvimInstall(installPlugin bool, nodejsVersionForCoC string) error {
 		return err
 	}
 
+	shrc := []string{
+		".bashrc",
+		".zshrc",
+	}
 	export := "\nexport PATH=$PATH:" + installPath + `/bin`
-	bashrc, err := os.OpenFile(filepath.Join(homeDir, ".bashrc"), os.O_APPEND|os.O_WRONLY, 0644)
-	if err != nil {
-		return fmt.Errorf("Open %s: %w", filepath.Join(homeDir, ".bashrc"), err)
+	for _, v := range shrc {
+		v = filepath.Join(homeDir, v)
+		if _, err := os.Stat(v); err == nil {
+			f, err := os.OpenFile(v, os.O_RDWR|os.O_APPEND, os.ModePerm)
+			if err != nil {
+				return err
+			}
+			defer f.Close()
+			if _, err := f.WriteString(export); err != nil {
+				return err
+			}
+		}
 	}
-	if _, err := bashrc.Write([]byte(export)); err != nil {
-		return fmt.Errorf("Update bashrc: %w", err)
-	}
-	bashrc.Close()
 
 	if installPlugin {
 		if nodejsVersionForCoC != "" {
@@ -62,6 +83,10 @@ func nvimInstall(installPlugin bool, nodejsVersionForCoC string) error {
 			if err != nil {
 				return fmt.Errorf("install nodejs for coc: %w", err)
 			}
+		}
+		// install ripgrep.
+		if err := installRipgrep(false); err != nil {
+			return fmt.Errorf("install ripgrep: %w", err)
 		}
 		nvimPluginDir := filepath.Join(homeDir, ".config", "nvim")
 		os.RemoveAll(nvimPluginDir)

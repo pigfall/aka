@@ -85,6 +85,7 @@ func installNodejs(version string, dstFolder string) (string, error) {
 		".zshrc",
 	}
 	for _, v := range shrc {
+		v = filepath.Join(userHomePath, v)
 		if _, err := os.Stat(v); err == nil {
 			f, err := os.OpenFile(v, os.O_RDWR|os.O_APPEND, os.ModePerm)
 			if err != nil {

@@ -20,6 +20,7 @@ func main() {
 		nodejsCmd(),
 		cipherCmd(),
 		tlstunCmd(),
+		ripgrepCmd(),
 	)
 
 	cmd.SilenceUsage = true
