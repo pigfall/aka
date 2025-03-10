@@ -6,7 +6,6 @@ import (
 )
 
 func tlstunCmd() *cobra.Command {
-  sdf
 	cobraCmd := &cobra.Command{
 		Use: "tlstun",
 	}
