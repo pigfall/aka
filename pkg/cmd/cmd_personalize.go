@@ -296,7 +296,7 @@ func personalizeTLSTun(password string) error {
 		return fmt.Errorf("write to %s error: %w", clientKeyPath, err)
 	}
 
-	serverCert, err := fs.ReadFile(assets, "assets/tsltun-servercert.pem")
+	serverCert, err := fs.ReadFile(assets, "assets/tlstun-servercert.pem")
 	if err != nil {
 		return err
 	}
@@ -305,7 +305,7 @@ func personalizeTLSTun(password string) error {
 		return err
 	}
 
-	serverCertPath := filepath.Join(userHomePath, "tsltun-servercert.pem")
+	serverCertPath := filepath.Join(userHomePath, "tlstun-servercert.pem")
 	if err := os.WriteFile(serverCertPath, serverCert, os.ModePerm); err != nil {
 		return fmt.Errorf("write to %s error: %w", serverCertPath, err)
 	}
