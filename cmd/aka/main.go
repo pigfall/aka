@@ -21,6 +21,7 @@ func main() {
 		cipherCmd(),
 		tlstunCmd(),
 		ripgrepCmd(),
+		reactCmd(),
 	)
 
 	cmd.SilenceUsage = true
