@@ -16,8 +16,15 @@ func reactCmd() *cobra.Command {
 		RunE: initReactUILibrary.Run,
 	}
 
+	initReactApp := pkgcmd.InitReactAppCmd{}
+	initReactAppCmd := &cobra.Command{
+		Use:  "init-app",
+		RunE: initReactApp.Run,
+	}
+
 	cobraCmd.AddCommand(
 		initReactUILibraryCmd,
+		initReactAppCmd,
 	)
 
 	return &cobraCmd
