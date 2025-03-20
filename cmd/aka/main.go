@@ -22,6 +22,7 @@ func main() {
 		tlstunCmd(),
 		ripgrepCmd(),
 		reactCmd(),
+		dlvCmd(),
 	)
 
 	cmd.SilenceUsage = true
