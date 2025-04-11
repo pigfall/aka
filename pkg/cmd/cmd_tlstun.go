@@ -13,7 +13,9 @@ type TLSTunInstallCmd struct {
 	Password string
 }
 
-type TLSTunClientCmd struct{}
+type TLSTunClientCmd struct {
+	TLSTunPath string
+}
 
 type TLSTunServerCmd struct{}
 
@@ -28,7 +30,7 @@ func (c *TLSTunClientCmd) Run(_ *cobra.Command, args []string) error {
 	}
 
 	cmd := exec.Command(
-		"tlstun",
+		c.TLSTunPath,
 		"client",
 		"-addr=127.0.0.1:1080",
 		"-ca="+filepath.Join(userHomePath, "tlstun-ca.pem"),
