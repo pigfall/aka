@@ -1,10 +1,12 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"syscall"
 
 	"github.com/spf13/cobra"
 )
@@ -15,13 +17,14 @@ type TLSTunInstallCmd struct {
 
 type TLSTunClientCmd struct {
 	TLSTunPath string
+	Background bool
 }
 
 type TLSTunServerCmd struct{}
 
 func (c *TLSTunClientCmd) Run(_ *cobra.Command, args []string) error {
 	if len(args) == 0 {
-		return fmt.Errorf("Please provide server address")
+		return errors.New("please provide server address")
 	}
 	serverAddr := args[0]
 	userHomePath, err := os.UserHomeDir()
@@ -41,6 +44,17 @@ func (c *TLSTunClientCmd) Run(_ *cobra.Command, args []string) error {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Stdin = os.Stdin
+
+	if c.Background {
+		cmd.SysProcAttr = &syscall.SysProcAttr{
+			Setpgid: true,
+		}
+		if err := cmd.Start(); err != nil {
+			return err
+		}
+		cmd.Process.Release()
+		return nil
+	}
 
 	if err := cmd.Run(); err != nil {
 		return err

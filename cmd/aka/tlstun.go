@@ -33,6 +33,12 @@ func tlstunCmd() *cobra.Command {
 		"tlstun",
 		"tlstun path",
 	)
+	clientRunCmd.Flags().BoolVar(
+		&clientRun.Background,
+		"background",
+		false,
+		"run in background",
+	)
 
 	cobraCmd.AddCommand(
 		installCmd,
