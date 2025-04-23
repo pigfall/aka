@@ -23,6 +23,7 @@ func main() {
 		ripgrepCmd(),
 		reactCmd(),
 		dlvCmd(),
+    dockerCmd(),
 	)
 
 	cmd.SilenceUsage = true
