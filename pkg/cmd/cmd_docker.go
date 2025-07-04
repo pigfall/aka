@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const installDockerBashScirpt =`
+const installDockerBashScirpt = `
 set -e
 set -o pipefail
 
@@ -35,20 +35,20 @@ sudo usermod -aG docker $USER
 
 type InstallDockerCmd struct{}
 
-func (c *InstallDockerCmd)Run(cobraCmd *cobra.Command, args []string) error{
-  ctx := cobraCmd.Context()
-  cmd := exec.CommandContext(
-      ctx,
-      "bash",
-      "-s",
-  )
-  cmd.Stdin = strings.NewReader(installDockerBashScirpt)
-  cmd.Stdout = os.Stdout
-  cmd.Stderr = os.Stderr
-  cmd.Env = append(os.Environ(),"DEBIAN_FRONTEND=noninteractive")
-  if err :=cmd.Run();err != nil{
-    os.Exit(1)
-  }
+func (c *InstallDockerCmd) Run(cobraCmd *cobra.Command, args []string) error {
+	ctx := cobraCmd.Context()
+	cmd := exec.CommandContext(
+		ctx,
+		"bash",
+		"-s",
+	)
+	cmd.Stdin = strings.NewReader(installDockerBashScirpt)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	cmd.Env = append(os.Environ(), "DEBIAN_FRONTEND=noninteractive")
+	if err := cmd.Run(); err != nil {
+		os.Exit(1)
+	}
 
-  return nil
+	return nil
 }

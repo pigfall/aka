@@ -23,7 +23,8 @@ func main() {
 		ripgrepCmd(),
 		reactCmd(),
 		dlvCmd(),
-    dockerCmd(),
+		dockerCmd(),
+		kubectlCmd(),
 	)
 
 	cmd.SilenceUsage = true

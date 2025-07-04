@@ -1,26 +1,26 @@
 package main
 
-import(
+import (
 	"github.com/spf13/cobra"
 
 	cmdpkg "github.com/pigfall/aka/pkg/cmd"
 )
 
-func dockerCmd()*cobra.Command{
-  c := &cobra.Command{
-    Use:"docker",
-  }
+func dockerCmd() *cobra.Command {
+	c := &cobra.Command{
+		Use: "docker",
+	}
 
-  install := cmdpkg.InstallDockerCmd{}
-  installCmd := &cobra.Command{
-    Use:"install",
-    RunE: install.Run,
-  }
+	install := cmdpkg.InstallDockerCmd{}
+	installCmd := &cobra.Command{
+		Use:  "install",
+		RunE: install.Run,
+	}
 
-  c.AddCommand(
-      installCmd,
-  )
+	c.AddCommand(
+		installCmd,
+	)
 
-  return c
+	return c
 
 }
