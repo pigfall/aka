@@ -6,7 +6,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"syscall"
 
 	"github.com/spf13/cobra"
 )
@@ -46,9 +45,7 @@ func (c *TLSTunClientCmd) Run(_ *cobra.Command, args []string) error {
 	cmd.Stdin = os.Stdin
 
 	if c.Background {
-		cmd.SysProcAttr = &syscall.SysProcAttr{
-			Setpgid: true,
-		}
+		setRunInBackground(cmd)
 		if err := cmd.Start(); err != nil {
 			return err
 		}
