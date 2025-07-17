@@ -5,4 +5,4 @@ FROM golang:1.23-alpine
 WORKDIR /app
 
 # Command to run the executable
-CMD ["go","build","-o","aka","./cmd/aka"]
+CMD ["go","build","-x","-v","-o","aka","./cmd/aka"]
