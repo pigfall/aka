@@ -25,6 +25,7 @@ func main() {
 		dlvCmd(),
 		dockerCmd(),
 		kubectlCmd(),
+		ghCmd(),
 	)
 
 	cmd.SilenceUsage = true
