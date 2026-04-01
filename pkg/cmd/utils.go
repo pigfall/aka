@@ -3,8 +3,8 @@ package cmd
 import (
 	"fmt"
 	"io"
+	"net/http"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
 )
@@ -47,17 +47,33 @@ func toolDir() string {
 }
 
 func download(url string, saveTo io.Writer) error {
-	cmd := exec.Command(
-		"curl",
-		"-L",
-		"--show-error",
-		"--fail",
-		url,
-	)
-	cmd.Stderr = os.Stderr
-	cmd.Stdout = saveTo
-	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("download from %s error: %v", err)
+	resp, err := http.Get(url)
+	if err != nil {
+		return fmt.Errorf("download from %s error: %w", url, err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("download from %s failed with status: %s", url, resp.Status)
+	}
+
+	if _, err := io.Copy(saveTo, resp.Body); err != nil {
+		return fmt.Errorf("download from %s error: %w", url, err)
+	}
+
+	return nil
+}
+
+func downloadToFile(url string, filePath string) error {
+	f, err := os.Create(filePath)
+	if err != nil {
+		return fmt.Errorf("create file %s error: %w", filePath, err)
+	}
+	defer f.Close()
+
+	if err := download(url, f); err != nil {
+		os.Remove(filePath)
+		return err
 	}
 
 	return nil

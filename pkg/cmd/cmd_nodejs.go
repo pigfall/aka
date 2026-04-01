@@ -11,6 +11,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// exec is still needed for tar command
+
 var (
 	nodejsDownloadUrlsBuilder = map[string]func(version string) string{
 		"darwin-arm64": func(version string) string {
@@ -57,11 +59,7 @@ func installNodejs(version string, dstFolder string) (string, error) {
 	filename := filepath.Base(url.Path)
 	downloadFilepath := filepath.Join(os.TempDir(), filename)
 	os.Remove(downloadFilepath)
-	downloadCmd := exec.Command("curl", "-o", downloadFilepath, "-L", downloadURL)
-	downloadCmd.Stdout = os.Stdout
-	downloadCmd.Stderr = os.Stderr
-
-	if err := downloadCmd.Run(); err != nil {
+	if err := downloadToFile(downloadURL, downloadFilepath); err != nil {
 		return "", fmt.Errorf("download nodejs error: %w", err)
 	}
 

@@ -10,6 +10,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// exec is still needed for tar and unzip commands
+
 const defaultGHVersion = "2.88.1"
 
 type InstallGHCmd struct {
@@ -70,10 +72,7 @@ func installGH(version string) error {
 	downloadPath := filepath.Join(os.TempDir(), "gh"+ext)
 	os.Remove(downloadPath)
 
-	downloadCmd := exec.Command("curl", "-L", "-o", downloadPath, downloadURL)
-	downloadCmd.Stdout = os.Stdout
-	downloadCmd.Stderr = os.Stderr
-	if err := downloadCmd.Run(); err != nil {
+	if err := downloadToFile(downloadURL, downloadPath); err != nil {
 		return fmt.Errorf("download from %s error: %w", downloadURL, err)
 	}
 

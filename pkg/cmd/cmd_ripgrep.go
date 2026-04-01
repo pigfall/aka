@@ -10,6 +10,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// exec is still needed for tar command
+
 type RipgrepInstallCmd struct {
 	Force bool
 }
@@ -47,16 +49,7 @@ func installRipgrep(force bool) error {
 	downloadPath := filepath.Join(userHomePath, "tools", "ripgrep.tar.gz")
 	os.MkdirAll(filepath.Dir(downloadPath), os.ModePerm)
 
-	downloadCmd := exec.Command(
-		"curl",
-		"-o",
-		downloadPath,
-		"-L",
-		url,
-	)
-	downloadCmd.Stdout = os.Stdout
-	downloadCmd.Stderr = os.Stderr
-	if err := downloadCmd.Run(); err != nil {
+	if err := downloadToFile(url, downloadPath); err != nil {
 		return fmt.Errorf("download from %s error: %w", url, err)
 	}
 

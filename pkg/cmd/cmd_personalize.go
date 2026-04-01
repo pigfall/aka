@@ -99,10 +99,7 @@ func (c *PersonalizeCraftingSandboxCmd) Run(cobraCmd *cobra.Command, args []stri
 	// download vim extension of vscode.
 	vscodevimFilePath := "/tmp/vscodevim.vsix"
 	os.Remove(vscodevimFilePath)
-	cmd := exec.Command("curl", "-L", "-o", vscodevimFilePath, "https://openvsxorg.blob.core.windows.net/resources/vscodevim/vim/1.29.0/vscodevim.vim-1.29.0.vsix")
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	if err := cmd.Run(); err != nil {
+	if err := downloadToFile("https://openvsxorg.blob.core.windows.net/resources/vscodevim/vim/1.29.0/vscodevim.vim-1.29.0.vsix", vscodevimFilePath); err != nil {
 		return fmt.Errorf("download vim extension for vscode: %w", err)
 	}
 	// install vim extension.
