@@ -32,7 +32,7 @@ func toolDir() string {
 	}
 	toolPath := filepath.Join(homeDir, "tools")
 	if err := os.MkdirAll(toolPath, os.ModePerm); err != nil {
-		fmt.Fprintf(os.Stderr, "mkdir %s error: %w", toolPath, err)
+		fmt.Fprintf(os.Stderr, "mkdir %s error: %v", toolPath, err)
 		os.Exit(1)
 	}
 
