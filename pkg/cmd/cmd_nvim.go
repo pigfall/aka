@@ -10,6 +10,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// exec is still needed for tar, git, and nvim commands
+
 type NvimInstallCmd struct {
 	InstallPlugin       bool
 	InstallNodeJSForCoC bool
@@ -44,10 +46,7 @@ func nvimInstall(installPlugin bool, nodejsVersionForCoC string) error {
 	os.MkdirAll(installPath, 0755)
 
 	os.Remove("nvim.tar.gz")
-	download := exec.Command("curl", "-L", "-o", "nvim.tar.gz", downloadURL)
-	download.Stdout = os.Stdout
-	download.Stderr = os.Stderr
-	if err := download.Run(); err != nil {
+	if err := downloadToFile(downloadURL, "nvim.tar.gz"); err != nil {
 		return err
 	}
 
