@@ -32,12 +32,12 @@ func nvimInstall(installPlugin bool, nodejsVersionForCoC string) error {
 	}
 
 	urls := map[string]string{
-		"linux-amd64":   "https://github.com/neovim/neovim/releases/download/v0.10.4/nvim-linux-x86_64.tar.gz",
-		"linux-arm64":   "https://github.com/neovim/neovim/releases/download/v0.10.4/nvim-linux-arm64.tar.gz",
-		"darwin-arm64":  "https://github.com/neovim/neovim/releases/download/v0.10.4/nvim-macos-arm64.tar.gz",
-		"darwin-amd64":  "https://github.com/neovim/neovim/releases/download/v0.10.4/nvim-macos-x86_64.tar.gz",
-		"windows-amd64": "https://github.com/neovim/neovim/releases/download/v0.10.4/nvim-win64.zip",
-		"windows-arm64": "https://github.com/neovim/neovim/releases/download/v0.10.4/nvim-win64.zip", // Not officially provided, fallback to amd64 build
+		"linux-amd64":   "https://github.com/neovim/neovim/releases/download/v0.12.2/nvim-linux-x86_64.tar.gz",
+		"linux-arm64":   "https://github.com/neovim/neovim/releases/download/v0.12.2/nvim-linux-arm64.tar.gz",
+		"darwin-arm64":  "https://github.com/neovim/neovim/releases/download/v0.12.2/nvim-macos-arm64.tar.gz",
+		"darwin-amd64":  "https://github.com/neovim/neovim/releases/download/v0.12.2/nvim-macos-x86_64.tar.gz",
+		"windows-amd64": "https://github.com/neovim/neovim/releases/download/v0.12.2/nvim-win64.zip",
+		"windows-arm64": "https://github.com/neovim/neovim/releases/download/v0.12.2/nvim-win64.zip", // Not officially provided, fallback to amd64 build
 	}
 	platform := fmt.Sprintf("%s-%s", runtime.GOOS, runtime.GOARCH)
 	downloadURL := urls[platform]
