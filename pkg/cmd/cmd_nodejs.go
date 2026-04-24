@@ -1,17 +1,14 @@
 package cmd
 
 import (
-	"fmt"
-	"net/url"
-	"os"
-	"os/exec"
-	"path/filepath"
-	"runtime"
+    "fmt"
+    "net/url"
+    "os"
+    "path/filepath"
+    "runtime"
 
-	"github.com/spf13/cobra"
+    "github.com/spf13/cobra"
 )
-
-// exec is still needed for tar command
 
 var (
 	nodejsDownloadUrlsBuilder = map[string]func(version string) string{
@@ -71,12 +68,9 @@ func installNodejs(version string, dstFolder string) (string, error) {
 	installPath := filepath.Join(userHomePath, "tools", installFolder)
 	os.RemoveAll(installPath)
 	os.MkdirAll(installPath, os.ModePerm)
-	uncompressCmd := exec.Command("tar", "-xf", downloadFilepath, "--strip-components=1", "-C", installPath)
-	uncompressCmd.Stdout = os.Stdout
-	uncompressCmd.Stderr = os.Stderr
-	if err := uncompressCmd.Run(); err != nil {
-		return "", fmt.Errorf("uncompress error: %w", err)
-	}
+    if err := UnpackArchive(downloadFilepath, installPath, 1); err != nil {
+        return "", fmt.Errorf("uncompress error: %w", err)
+    }
 
 	shrc := []string{
 		".bashrc",
@@ -90,7 +84,7 @@ func installNodejs(version string, dstFolder string) (string, error) {
 				return "", err
 			}
 			defer f.Close()
-			if _, err := f.WriteString(fmt.Sprintf("\nexport PATH=$PATH:$HOME/tools/nodejs-%s", version)); err != nil {
+			if _, err := f.WriteString(fmt.Sprintf("\nexport PATH=$PATH:$HOME/tools/nodejs-%s/bin", version)); err != nil {
 				return "", err
 			}
 		}

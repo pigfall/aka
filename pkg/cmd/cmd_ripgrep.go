@@ -1,16 +1,13 @@
 package cmd
 
 import (
-	"fmt"
-	"os"
-	"os/exec"
-	"path/filepath"
-	"runtime"
+    "fmt"
+    "os"
+    "path/filepath"
+    "runtime"
 
-	"github.com/spf13/cobra"
+    "github.com/spf13/cobra"
 )
-
-// exec is still needed for tar command
 
 type RipgrepInstallCmd struct {
 	Force bool
@@ -57,13 +54,10 @@ func installRipgrep(force bool) error {
 		return fmt.Errorf("download from %s error: %w", url, err)
 	}
 
-	os.MkdirAll(dstPath, os.ModePerm)
-	uncompressCmd := exec.Command("tar", "-xf", downloadPath, "--strip-components=1", "-C", dstPath)
-	uncompressCmd.Stdout = os.Stdout
-	uncompressCmd.Stderr = os.Stderr
-	if err := uncompressCmd.Run(); err != nil {
-		return fmt.Errorf("uncompress %s error: %w", downloadPath, err)
-	}
+    os.MkdirAll(dstPath, os.ModePerm)
+    if err := UnpackArchive(downloadPath, dstPath, 1); err != nil {
+        return fmt.Errorf("uncompress %s error: %w", downloadPath, err)
+    }
 
 	shrc := []string{
 		".bashrc",

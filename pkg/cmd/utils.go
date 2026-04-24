@@ -1,18 +1,23 @@
 package cmd
 
 import (
-	"fmt"
-	"io"
-	"math"
-	"net"
-	"net/http"
-	"net/url"
-	"os"
-	"path/filepath"
-	"strings"
-	"time"
+    "archive/tar"
+    "archive/zip"
+    "compress/gzip"
+    "fmt"
+    "io"
+    "math"
+    "net"
+    "net/http"
+    "net/url"
+    "os"
+    "path"
+    "path/filepath"
+    "strings"
+    "time"
 
-	"golang.org/x/net/proxy"
+    xzpkg "github.com/ulikunitz/xz"
+    "golang.org/x/net/proxy"
 )
 
 func downloadDir() string {
@@ -179,6 +184,168 @@ func downloadToFile(url string, filePath string) error {
 	}
 
 	return nil
+}
+
+// UnpackArchive extracts common archive formats (.tar, .tar.gz, .tar.xz, .zip)
+// into dstDir. stripComponents behaves like tar's --strip-components: it
+// removes the specified number of leading path elements from each entry.
+func UnpackArchive(srcPath, dstDir string, stripComponents int) error {
+    lower := strings.ToLower(srcPath)
+    switch {
+    case strings.HasSuffix(lower, ".tar.gz") || strings.HasSuffix(lower, ".tgz"):
+        return unpackTarGz(srcPath, dstDir, stripComponents)
+    case strings.HasSuffix(lower, ".tar.xz"):
+        return unpackTarXz(srcPath, dstDir, stripComponents)
+    case strings.HasSuffix(lower, ".tar"):
+        return unpackTar(srcPath, dstDir, stripComponents)
+    case strings.HasSuffix(lower, ".zip"):
+        return unpackZip(srcPath, dstDir, stripComponents)
+    default:
+        return fmt.Errorf("unsupported archive format: %s", srcPath)
+    }
+}
+
+func stripPathElements(p string, strip int) string {
+    // tar/zip entries always use forward slashes
+    p = path.Clean(p)
+    if p == "." || p == "/" {
+        return ""
+    }
+    parts := strings.Split(p, "/")
+    if strip >= len(parts) {
+        return ""
+    }
+    return filepath.FromSlash(strings.Join(parts[strip:], "/"))
+}
+
+func unpackTarGz(srcPath, dstDir string, strip int) error {
+    f, err := os.Open(srcPath)
+    if err != nil {
+        return err
+    }
+    defer f.Close()
+    gr, err := gzip.NewReader(f)
+    if err != nil {
+        return err
+    }
+    defer gr.Close()
+    tr := tar.NewReader(gr)
+    return unpackTarReader(tr, dstDir, strip)
+}
+
+func unpackTarXz(srcPath, dstDir string, strip int) error {
+    f, err := os.Open(srcPath)
+    if err != nil {
+        return err
+    }
+    defer f.Close()
+    xr, err := xzpkg.NewReader(f)
+    if err != nil {
+        return err
+    }
+    tr := tar.NewReader(xr)
+    return unpackTarReader(tr, dstDir, strip)
+}
+
+func unpackTar(srcPath, dstDir string, strip int) error {
+    f, err := os.Open(srcPath)
+    if err != nil {
+        return err
+    }
+    defer f.Close()
+    tr := tar.NewReader(f)
+    return unpackTarReader(tr, dstDir, strip)
+}
+
+func unpackTarReader(tr *tar.Reader, dstDir string, strip int) error {
+    for {
+        hdr, err := tr.Next()
+        if err == io.EOF {
+            break
+        }
+        if err != nil {
+            return err
+        }
+        name := stripPathElements(hdr.Name, strip)
+        if name == "" {
+            // stripped away entire path
+            continue
+        }
+        target := filepath.Join(dstDir, name)
+        switch hdr.Typeflag {
+        case tar.TypeDir:
+            if err := os.MkdirAll(target, os.FileMode(hdr.Mode)); err != nil {
+                return err
+            }
+        case tar.TypeReg, tar.TypeRegA:
+            if err := os.MkdirAll(filepath.Dir(target), os.ModePerm); err != nil {
+                return err
+            }
+            out, err := os.OpenFile(target, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, os.FileMode(hdr.Mode))
+            if err != nil {
+                return err
+            }
+            if _, err := io.Copy(out, tr); err != nil {
+                out.Close()
+                return err
+            }
+            out.Close()
+        case tar.TypeSymlink:
+            // attempt to create symlink; ignore errors on platforms that
+            // don't support it.
+            if err := os.MkdirAll(filepath.Dir(target), os.ModePerm); err != nil {
+                return err
+            }
+            _ = os.Remove(target)
+            if err := os.Symlink(hdr.Linkname, target); err != nil {
+                // ignore symlink creation errors
+            }
+        default:
+            // ignore other types
+        }
+    }
+    return nil
+}
+
+func unpackZip(srcPath, dstDir string, strip int) error {
+    zr, err := zip.OpenReader(srcPath)
+    if err != nil {
+        return err
+    }
+    defer zr.Close()
+    for _, f := range zr.File {
+        name := stripPathElements(f.Name, strip)
+        if name == "" {
+            continue
+        }
+        target := filepath.Join(dstDir, name)
+        if f.FileInfo().IsDir() {
+            if err := os.MkdirAll(target, f.Mode()); err != nil {
+                return err
+            }
+            continue
+        }
+        if err := os.MkdirAll(filepath.Dir(target), os.ModePerm); err != nil {
+            return err
+        }
+        in, err := f.Open()
+        if err != nil {
+            return err
+        }
+        out, err := os.OpenFile(target, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, f.Mode())
+        if err != nil {
+            in.Close()
+            return err
+        }
+        if _, err := io.Copy(out, in); err != nil {
+            in.Close()
+            out.Close()
+            return err
+        }
+        in.Close()
+        out.Close()
+    }
+    return nil
 }
 
 // humanSize formats bytes as a human readable string (e.g., 1.2 MB).
