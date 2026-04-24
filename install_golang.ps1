@@ -55,9 +55,20 @@ if (${Region} -eq "CN") {
     Write-Host "Using global download URL: golang.org" -ForegroundColor Green
 }
 
-$goDownloadUrl = "${baseDownloadUrl}go${GoVersion}.windows-amd64.zip"
-$zipFileName = "go${GoVersion}.windows-amd64.zip"
-$downloadPath = Join-Path $env:TEMP ${zipFileName}
+# --- Auto-detect Windows architecture to choose correct Go zip ---
+$arch = [System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture
+switch ($arch) {
+  "X64" { $goArch = "amd64" }
+  "Arm64" { $goArch = "arm64" }
+  default {
+    Write-Host "Unsupported architecture: $arch" -ForegroundColor Red
+    exit 1
+  }
+}
+
+$zipFileName = "go${GoVersion}.windows-${goArch}.zip"
+$goDownloadUrl = "$baseDownloadUrl$zipFileName"
+$downloadPath = Join-Path $env:TEMP $zipFileName
 
 # --- Resolve the full installation path ---
 # This ensures $HOME is correctly expanded before path operations
