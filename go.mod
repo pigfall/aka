@@ -5,8 +5,9 @@ go 1.23.0
 toolchain go1.23.6
 
 require (
-	github.com/pelletier/go-toml/v2 v2.2.3
-	github.com/spf13/cobra v1.8.1
+    github.com/pelletier/go-toml/v2 v2.2.3
+    github.com/spf13/cobra v1.8.1
+    golang.org/x/net v0.26.0
 )
 
 require (
