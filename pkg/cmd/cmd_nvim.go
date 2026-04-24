@@ -1,16 +1,16 @@
 package cmd
 
 import (
-	"fmt"
-	"os"
-	"os/exec"
-	"path/filepath"
-	"runtime"
+    "fmt"
+    "os"
+    "os/exec"
+    "path/filepath"
+    "runtime"
 
-	"github.com/spf13/cobra"
+    "github.com/spf13/cobra"
 )
 
-// exec is still needed for tar, git, and nvim commands
+// Uses pure-Go archive unpacking where possible; git and nvim exec calls remain
 
 type NvimInstallCmd struct {
 	InstallPlugin       bool
@@ -49,17 +49,13 @@ func nvimInstall(installPlugin bool, nodejsVersionForCoC string) error {
 	os.RemoveAll(installPath)
 	os.MkdirAll(installPath, 0755)
 
-	os.Remove("nvim.tar.gz")
-	if err := downloadToFile(downloadURL, "nvim.tar.gz"); err != nil {
-		return err
-	}
-
-	install := exec.Command("tar", "-xf", "nvim.tar.gz", "--strip-components=1", "-C", installPath)
-	install.Stdout = os.Stdout
-	install.Stderr = os.Stderr
-	if err := install.Run(); err != nil {
-		return err
-	}
+    os.Remove("nvim.tar.gz")
+    if err := downloadToFile(downloadURL, "nvim.tar.gz"); err != nil {
+        return err
+    }
+    if err := UnpackArchive("nvim.tar.gz", installPath, 1); err != nil {
+        return err
+    }
 
 	shrc := []string{
 		".bashrc",

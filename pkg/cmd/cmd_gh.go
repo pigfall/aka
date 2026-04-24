@@ -1,16 +1,16 @@
 package cmd
 
 import (
-	"fmt"
-	"os"
-	"os/exec"
-	"path/filepath"
-	"runtime"
+    "fmt"
+    "os"
+    "path/filepath"
+    "runtime"
+    "strings"
 
-	"github.com/spf13/cobra"
+    "github.com/spf13/cobra"
 )
 
-// exec is still needed for tar and unzip commands
+// Uses pure-Go archive unpacking (no external tar/unzip required)
 
 const defaultGHVersion = "2.88.1"
 
@@ -76,45 +76,42 @@ func installGH(version string) error {
 		return fmt.Errorf("download from %s error: %w", downloadURL, err)
 	}
 
-	if ext == ".tar.gz" {
-		uncompressCmd := exec.Command("tar", "-xf", downloadPath, "--strip-components=1", "-C", dstPath)
-		uncompressCmd.Stdout = os.Stdout
-		uncompressCmd.Stderr = os.Stderr
-		if err := uncompressCmd.Run(); err != nil {
-			return fmt.Errorf("uncompress %s error: %w", downloadPath, err)
-		}
-	} else {
-		uncompressCmd := exec.Command("unzip", "-o", downloadPath, "-d", dstPath)
-		uncompressCmd.Stdout = os.Stdout
-		uncompressCmd.Stderr = os.Stderr
-		if err := uncompressCmd.Run(); err != nil {
-			return fmt.Errorf("uncompress %s error: %w", downloadPath, err)
-		}
-		// zip extracts into a subdirectory; move contents up
-		entries, err := os.ReadDir(dstPath)
-		if err != nil {
-			return err
-		}
-		for _, entry := range entries {
-			if entry.IsDir() {
-				subDir := filepath.Join(dstPath, entry.Name())
-				subEntries, err := os.ReadDir(subDir)
-				if err != nil {
-					return err
-				}
-				for _, se := range subEntries {
-					if err := os.Rename(
-						filepath.Join(subDir, se.Name()),
-						filepath.Join(dstPath, se.Name()),
-					); err != nil {
-						return err
-					}
-				}
-				os.RemoveAll(subDir)
-				break
-			}
-		}
-	}
+    // Unpack using the pure-Go unpacker. For tar archives we need to strip
+    // the top-level folder produced by the tarball, so use stripComponents=1.
+    if strings.HasSuffix(strings.ToLower(downloadPath), ".tar.gz") {
+        if err := UnpackArchive(downloadPath, dstPath, 1); err != nil {
+            return fmt.Errorf("uncompress %s error: %w", downloadPath, err)
+        }
+    } else {
+        if err := UnpackArchive(downloadPath, dstPath, 0); err != nil {
+            return fmt.Errorf("uncompress %s error: %w", downloadPath, err)
+        }
+        // zip may extract into a subdirectory; move up first subdirectory's
+        // contents to dstPath (preserve previous behavior).
+        entries, err := os.ReadDir(dstPath)
+        if err != nil {
+            return err
+        }
+        for _, entry := range entries {
+            if entry.IsDir() {
+                subDir := filepath.Join(dstPath, entry.Name())
+                subEntries, err := os.ReadDir(subDir)
+                if err != nil {
+                    return err
+                }
+                for _, se := range subEntries {
+                    if err := os.Rename(
+                        filepath.Join(subDir, se.Name()),
+                        filepath.Join(dstPath, se.Name()),
+                    ); err != nil {
+                        return err
+                    }
+                }
+                os.RemoveAll(subDir)
+                break
+            }
+        }
+    }
 
 	binDir := filepath.Join(dstPath, "bin")
 	shrc := []string{

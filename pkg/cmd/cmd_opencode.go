@@ -1,14 +1,12 @@
 package cmd
 
 import (
-	"fmt"
-	"os"
-	"os/exec"
-	"path/filepath"
-	"runtime"
-	"strings"
+    "fmt"
+    "os"
+    "path/filepath"
+    "runtime"
 
-	"github.com/spf13/cobra"
+    "github.com/spf13/cobra"
 )
 
 const defaultOpenCodeVersion = "1.4.3"
@@ -53,21 +51,10 @@ func installOpenCode(version string) error {
 		return fmt.Errorf("download from %s error: %w", downloadURL, err)
 	}
 
-	if strings.HasSuffix(archiveName, ".tar.gz") {
-		uncompressCmd := exec.Command("tar", "-xf", downloadPath, "-C", dstPath)
-		uncompressCmd.Stdout = os.Stdout
-		uncompressCmd.Stderr = os.Stderr
-		if err := uncompressCmd.Run(); err != nil {
-			return fmt.Errorf("uncompress %s error: %w", downloadPath, err)
-		}
-	} else {
-		uncompressCmd := exec.Command("unzip", "-o", downloadPath, "-d", dstPath)
-		uncompressCmd.Stdout = os.Stdout
-		uncompressCmd.Stderr = os.Stderr
-		if err := uncompressCmd.Run(); err != nil {
-			return fmt.Errorf("uncompress %s error: %w", downloadPath, err)
-		}
-	}
+    // Use the pure-Go unpacker which supports .tar.gz and .zip
+    if err := UnpackArchive(downloadPath, dstPath, 0); err != nil {
+        return fmt.Errorf("uncompress %s error: %w", downloadPath, err)
+    }
 
 	binaryPath := filepath.Join(dstPath, "opencode")
 	if runtime.GOOS == "windows" {
