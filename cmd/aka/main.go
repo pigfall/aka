@@ -16,6 +16,7 @@ func main() {
 		k3sCmd(),
 		k8sCmd(),
 		nvimCmd(),
+		nvmCmd(),
 		personalizeCmd(),
 		nodejsCmd(),
 		cipherCmd(),
