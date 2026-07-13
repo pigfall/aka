@@ -10,27 +10,43 @@ func nvmCmd() *cobra.Command {
 		Use: "nvm",
 	}
 
-	install := cmdpkg.NvmInstallCmd{}
-	installCmd := &cobra.Command{
+	installNvm := cmdpkg.NvmInstallCmd{}
+	installNvmCmd := &cobra.Command{
 		Use:   "install",
 		Short: "Install nvm",
-		RunE:  install.Run,
+		Args:  cobra.NoArgs,
+		RunE:  installNvm.Run,
 	}
-	installCmd.Flags().StringVar(
-		&install.Version,
-		"version",
-		"v0.40.3",
-		"nvm version",
-	)
-	installCmd.Flags().BoolVar(
-		&install.Force,
-		"force",
-		false,
-		"force reinstall nvm",
+
+	nodejsCmd := &cobra.Command{
+		Use: "nodejs",
+	}
+
+	installNodejs := cmdpkg.NvmNodejsInstallCmd{}
+	installNodejsCmd := &cobra.Command{
+		Use:   "install <nodejs-version>",
+		Short: "Install nodejs by nvm",
+		Args:  cobra.ExactArgs(1),
+		RunE:  installNodejs.Run,
+	}
+	installNodejsCmd.Example = "aka nvm nodejs install v22.14.0"
+
+	list := cmdpkg.NvmListCmd{}
+	listCmd := &cobra.Command{
+		Use:   "list",
+		Short: "List nodejs versions by nvm",
+		Args:  cobra.NoArgs,
+		RunE:  list.Run,
+	}
+
+	nodejsCmd.AddCommand(
+		installNodejsCmd,
+		listCmd,
 	)
 
 	c.AddCommand(
-		installCmd,
+		installNvmCmd,
+		nodejsCmd,
 	)
 
 	return c
