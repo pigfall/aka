@@ -25,6 +25,18 @@ func (c *NvmNodejsInstallCmd) Run(cmd *cobra.Command, args []string) error {
 	return installNodejsByNvm(args[0])
 }
 
+type NvmNodejsDefaultCmd struct {
+}
+
+func (c *NvmNodejsDefaultCmd) Run(cmd *cobra.Command, args []string) error {
+	version := ""
+	if len(args) > 0 {
+		version = args[0]
+	}
+
+	return defaultNodejsByNvm(version)
+}
+
 type NvmListCmd struct {
 }
 
@@ -136,6 +148,40 @@ nvm list
 	listCmd.Env = append(listCmd.Env, os.Environ()...)
 	if err := listCmd.Run(); err != nil {
 		return fmt.Errorf("run nvm list error: %w", err)
+	}
+
+	return nil
+}
+
+func defaultNodejsByNvm(version string) error {
+	if runtime.GOOS == "windows" {
+		return fmt.Errorf("nvm alias default is not supported on windows")
+	}
+
+	command := "nvm alias default"
+	if version != "" {
+		command = `nvm alias default "$AKA_NODEJS_VERSION"`
+	}
+
+	defaultCmd := exec.Command("bash", "-c", `
+set -e
+NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
+if [ ! -s "$NVM_DIR/nvm.sh" ]; then
+	echo "nvm is not installed. please install nvm first." >&2
+	exit 1
+fi
+. "$NVM_DIR/nvm.sh"
+`+command+`
+`)
+	defaultCmd.Stdout = os.Stdout
+	defaultCmd.Stderr = os.Stderr
+	defaultCmd.Env = append(defaultCmd.Env, os.Environ()...)
+	defaultCmd.Env = append(defaultCmd.Env, fmt.Sprintf("AKA_NODEJS_VERSION=%s", version))
+	if err := defaultCmd.Run(); err != nil {
+		if version == "" {
+			return fmt.Errorf("run nvm alias default error: %w", err)
+		}
+		return fmt.Errorf("run nvm alias default %s error: %w", version, err)
 	}
 
 	return nil

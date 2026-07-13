@@ -39,9 +39,19 @@ func nvmCmd() *cobra.Command {
 		RunE:  list.Run,
 	}
 
+	defaultVersion := cmdpkg.NvmNodejsDefaultCmd{}
+	defaultVersionCmd := &cobra.Command{
+		Use:   "default [nodejs-version]",
+		Short: "Set default nodejs version by nvm",
+		Args:  cobra.MaximumNArgs(1),
+		RunE:  defaultVersion.Run,
+	}
+	defaultVersionCmd.Example = "aka nvm nodejs default v22.14.0"
+
 	nodejsCmd.AddCommand(
 		installNodejsCmd,
 		listCmd,
+		defaultVersionCmd,
 	)
 
 	c.AddCommand(
