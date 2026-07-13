@@ -17,6 +17,7 @@ func main() {
 		k8sCmd(),
 		nvimCmd(),
 		nvmCmd(),
+		playwrightCmd(),
 		personalizeCmd(),
 		nodejsCmd(),
 		cipherCmd(),
