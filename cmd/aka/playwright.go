@@ -18,7 +18,15 @@ func playwrightCmd() *cobra.Command {
 		RunE:  initPlaywright.Run,
 	}
 
-	c.AddCommand(initPlaywrightCmd)
+	runPlaywrightTest := pkgcmd.PlaywrightRunTestCmd{}
+	runPlaywrightTestCmd := &cobra.Command{
+		Use:   "run-test",
+		Short: "Run Playwright tests in current folder",
+		Args:  cobra.NoArgs,
+		RunE:  runPlaywrightTest.Run,
+	}
+
+	c.AddCommand(initPlaywrightCmd, runPlaywrightTestCmd)
 
 	return c
 }

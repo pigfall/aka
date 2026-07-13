@@ -12,6 +12,9 @@ import (
 type PlaywrightInitCmd struct {
 }
 
+type PlaywrightRunTestCmd struct {
+}
+
 func (c *PlaywrightInitCmd) Run(cmd *cobra.Command, args []string) error {
 	npmCommand := "npm"
 	if runtime.GOOS == "windows" {
@@ -25,6 +28,24 @@ func (c *PlaywrightInitCmd) Run(cmd *cobra.Command, args []string) error {
 
 	if err := initCmd.Run(); err != nil {
 		return fmt.Errorf("run npm init playwright@latest error: %w", err)
+	}
+
+	return nil
+}
+
+func (c *PlaywrightRunTestCmd) Run(cmd *cobra.Command, args []string) error {
+	npxCommand := "npx"
+	if runtime.GOOS == "windows" {
+		npxCommand = "npx.cmd"
+	}
+
+	testCmd := exec.Command(npxCommand, "playwright", "test")
+	testCmd.Stdin = os.Stdin
+	testCmd.Stdout = os.Stdout
+	testCmd.Stderr = os.Stderr
+
+	if err := testCmd.Run(); err != nil {
+		return fmt.Errorf("run npx playwright test error: %w", err)
 	}
 
 	return nil
