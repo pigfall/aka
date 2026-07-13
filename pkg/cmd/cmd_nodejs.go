@@ -1,13 +1,13 @@
 package cmd
 
 import (
-    "fmt"
-    "net/url"
-    "os"
-    "path/filepath"
-    "runtime"
+	"fmt"
+	"net/url"
+	"os"
+	"path/filepath"
+	"runtime"
 
-    "github.com/spf13/cobra"
+	"github.com/spf13/cobra"
 )
 
 var (
@@ -68,9 +68,9 @@ func installNodejs(version string, dstFolder string) (string, error) {
 	installPath := filepath.Join(userHomePath, "tools", installFolder)
 	os.RemoveAll(installPath)
 	os.MkdirAll(installPath, os.ModePerm)
-    if err := UnpackArchive(downloadFilepath, installPath, 1); err != nil {
-        return "", fmt.Errorf("uncompress error: %w", err)
-    }
+	if err := UnpackArchive(downloadFilepath, installPath, 1); err != nil {
+		return "", fmt.Errorf("uncompress error: %w", err)
+	}
 
 	shrc := []string{
 		".bashrc",

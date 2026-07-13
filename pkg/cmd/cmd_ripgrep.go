@@ -1,12 +1,12 @@
 package cmd
 
 import (
-    "fmt"
-    "os"
-    "path/filepath"
-    "runtime"
+	"fmt"
+	"os"
+	"path/filepath"
+	"runtime"
 
-    "github.com/spf13/cobra"
+	"github.com/spf13/cobra"
 )
 
 type RipgrepInstallCmd struct {
@@ -54,10 +54,10 @@ func installRipgrep(force bool) error {
 		return fmt.Errorf("download from %s error: %w", url, err)
 	}
 
-    os.MkdirAll(dstPath, os.ModePerm)
-    if err := UnpackArchive(downloadPath, dstPath, 1); err != nil {
-        return fmt.Errorf("uncompress %s error: %w", downloadPath, err)
-    }
+	os.MkdirAll(dstPath, os.ModePerm)
+	if err := UnpackArchive(downloadPath, dstPath, 1); err != nil {
+		return fmt.Errorf("uncompress %s error: %w", downloadPath, err)
+	}
 
 	shrc := []string{
 		".bashrc",

@@ -1,12 +1,12 @@
 package cmd
 
 import (
-    "fmt"
-    "os"
-    "path/filepath"
-    "runtime"
+	"fmt"
+	"os"
+	"path/filepath"
+	"runtime"
 
-    "github.com/spf13/cobra"
+	"github.com/spf13/cobra"
 )
 
 const defaultOpenCodeVersion = "1.4.3"
@@ -51,10 +51,10 @@ func installOpenCode(version string) error {
 		return fmt.Errorf("download from %s error: %w", downloadURL, err)
 	}
 
-    // Use the pure-Go unpacker which supports .tar.gz and .zip
-    if err := UnpackArchive(downloadPath, dstPath, 0); err != nil {
-        return fmt.Errorf("uncompress %s error: %w", downloadPath, err)
-    }
+	// Use the pure-Go unpacker which supports .tar.gz and .zip
+	if err := UnpackArchive(downloadPath, dstPath, 0); err != nil {
+		return fmt.Errorf("uncompress %s error: %w", downloadPath, err)
+	}
 
 	binaryPath := filepath.Join(dstPath, "opencode")
 	if runtime.GOOS == "windows" {

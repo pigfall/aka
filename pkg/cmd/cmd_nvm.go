@@ -120,6 +120,7 @@ nvm install "$AKA_NODEJS_VERSION"
 `)
 	installCmd.Stdout = os.Stdout
 	installCmd.Stderr = os.Stderr
+	installCmd.Env = append(installCmd.Env, os.Environ()...)
 	installCmd.Env = append(installCmd.Env, fmt.Sprintf("AKA_NODEJS_VERSION=%s", version))
 	if err := installCmd.Run(); err != nil {
 		return fmt.Errorf("run nvm install %s error: %w", version, err)
