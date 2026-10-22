@@ -252,15 +252,15 @@ func personalizeTLSTun(password string) error {
 		return err
 	}
 
-	ca, err := fs.ReadFile(assets, "assets/acnutslt")
+	ca, err := fs.ReadFile(assets, "assets/tlstun-ca.pem.tzzencrypted")
 	if err != nil {
 		return fmt.Errorf("read ca error: %w", err)
 	}
-	clientCert, err := fs.ReadFile(assets, "assets/clicnutslt")
+	clientCert, err := fs.ReadFile(assets, "assets/tlstun-clientcert.pem.tzzencrypted")
 	if err != nil {
 		return fmt.Errorf("read client cert error: %w", err)
 	}
-	clientKey, err := fs.ReadFile(assets, "assets/cliknutslt")
+	clientKey, err := fs.ReadFile(assets, "assets/tlstun-clientkey.pem.tzzencrypted")
 	if err != nil {
 		return fmt.Errorf("read client key error: %w", err)
 	}

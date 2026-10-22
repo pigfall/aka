@@ -29,6 +29,7 @@ func main() {
 		kubectlCmd(),
 		ghCmd(),
 		opencodeCmd(),
+		csCmd(),
 	)
 
 	cmd.SilenceUsage = true
