@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"strings"
@@ -9,10 +11,9 @@ import (
 
 func TestPiArchive(t *testing.T) {
 	cases := []struct {
-		platform          string
-		archiveName       string
-		stripComponents   int
-		expectUnsupported bool
+		platform        string
+		archiveName     string
+		stripComponents int
 	}{
 		{platform: "linux-amd64", archiveName: "pi-linux-x64.tar.gz", stripComponents: 1},
 		{platform: "linux-arm64", archiveName: "pi-linux-arm64.tar.gz", stripComponents: 1},
@@ -43,7 +44,7 @@ func TestPiArchive(t *testing.T) {
 
 func TestNormalizePiVersion(t *testing.T) {
 	cases := map[string]string{
-		"":          defaultPiVersion,
+		"":          "",
 		"1.6.0":     "1.6.0",
 		"v1.6.0":    "1.6.0",
 		"  v1.6.0 ": "1.6.0",
@@ -53,6 +54,62 @@ func TestNormalizePiVersion(t *testing.T) {
 		if got := normalizePiVersion(in); got != want {
 			t.Errorf("normalizePiVersion(%q) = %q, want %q", in, got, want)
 		}
+	}
+}
+
+func TestLatestPiVersionFollowsRedirect(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, piReleasesBaseURL+"/tag/v1.6.0", http.StatusFound)
+	}))
+	defer server.Close()
+
+	original := piLatestReleaseURL
+	piLatestReleaseURL = server.URL
+	defer func() { piLatestReleaseURL = original }()
+
+	version, err := latestPiVersion()
+	if err != nil {
+		t.Fatalf("latestPiVersion() returned error: %v", err)
+	}
+	if version != "1.6.0" {
+		t.Fatalf("latestPiVersion() = %q, want %q", version, "1.6.0")
+	}
+}
+
+func TestLatestPiVersionFailsWithoutRedirect(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("<html>no releases</html>"))
+	}))
+	defer server.Close()
+
+	original := piLatestReleaseURL
+	piLatestReleaseURL = server.URL
+	defer func() { piLatestReleaseURL = original }()
+
+	if _, err := latestPiVersion(); err == nil {
+		t.Fatal("expected error when the endpoint does not redirect, got nil")
+	}
+}
+
+func TestInstalledPiVersion(t *testing.T) {
+	home := t.TempDir()
+	piDir := filepath.Join(home, "tools", "pi")
+
+	if got := installedPiVersion(piDir); got != "" {
+		t.Fatalf("installedPiVersion() for missing package.json = %q, want empty", got)
+	}
+
+	if err := os.MkdirAll(piDir, 0755); err != nil {
+		t.Fatal(err)
+	}
+	pkg := []byte(`{"name":"@earendil-works/pi-coding-agent","version":"1.4.2"}`)
+	if err := os.WriteFile(filepath.Join(piDir, "package.json"), pkg, 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	if got := installedPiVersion(piDir); got != "1.4.2" {
+		t.Fatalf("installedPiVersion() = %q, want %q", got, "1.4.2")
 	}
 }
 

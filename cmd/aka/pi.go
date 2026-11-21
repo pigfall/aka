@@ -20,13 +20,13 @@ func piCmd() *cobra.Command {
 		&install.Version,
 		"version",
 		"",
-		"version to install, e.g. 1.6.0 (default: 1.6.0)",
+		"version to install, e.g. 1.6.0 (default: latest release)",
 	)
 	installCmd.Flags().BoolVar(
 		&install.Force,
 		"force",
 		false,
-		"reinstall even if pi is already installed",
+		"reinstall even if the same pi version is already installed",
 	)
 
 	cobraCmd.AddCommand(

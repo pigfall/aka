@@ -1,8 +1,12 @@
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
+	"net/http"
+	"net/url"
 	"os"
+	"path"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -10,10 +14,13 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// defaultPiVersion is the Pi Coding Agent release installed when no --version
-// is given. Pi publishes standalone platform archives on GitHub releases, so
-// no Node.js runtime is required.
-const defaultPiVersion = "1.6.0"
+const piReleasesBaseURL = "https://github.com/earendil-works/pi/releases"
+
+// piLatestReleaseURL is the "latest release" endpoint. GitHub answers it with a
+// redirect to /releases/tag/vX.Y.Z, so aka can resolve the newest version
+// without consuming GitHub API rate limit. It is a variable to keep the
+// resolver testable.
+var piLatestReleaseURL = piReleasesBaseURL + "/latest"
 
 type PiInstallCmd struct {
 	Version string
@@ -25,11 +32,19 @@ func (c *PiInstallCmd) Run(cmd *cobra.Command, args []string) error {
 }
 
 func installPi(version string, force bool) error {
-	version = normalizePiVersion(version)
 	platform := fmt.Sprintf("%s-%s", runtime.GOOS, runtime.GOARCH)
 	archiveName, stripComponents, err := piArchive(platform)
 	if err != nil {
 		return err
+	}
+
+	version = normalizePiVersion(version)
+	if version == "" {
+		latest, err := latestPiVersion()
+		if err != nil {
+			return err
+		}
+		version = latest
 	}
 
 	userHomePath, err := os.UserHomeDir()
@@ -44,18 +59,27 @@ func installPi(version string, force bool) error {
 	}
 	binaryPath := filepath.Join(dstPath, binaryName)
 
+	if !force {
+		// Skip when the requested release is already on disk; a plain
+		// `aka pi install` therefore upgrades to the latest release only
+		// when the installed one is older.
+		if installedPiVersion(dstPath) == version {
+			if _, err := os.Stat(binaryPath); err == nil {
+				return nil
+			}
+		}
+	}
 	if force {
 		if err := os.RemoveAll(dstPath); err != nil {
 			return fmt.Errorf("remove %s error: %w", dstPath, err)
 		}
-	} else if _, err := os.Stat(binaryPath); err == nil {
-		// Already installed; keep the existing version instead of
-		// re-downloading the same archive.
-		return nil
 	}
 
+	fmt.Fprintf(os.Stderr, "Installing pi v%s\n", version)
+
 	downloadURL := fmt.Sprintf(
-		"https://github.com/earendil-works/pi/releases/download/v%s/%s",
+		"%s/download/v%s/%s",
+		piReleasesBaseURL,
 		version,
 		archiveName,
 	)
@@ -91,6 +115,65 @@ func installPi(version string, force bool) error {
 	}
 
 	return nil
+}
+
+// latestPiVersion resolves the newest Pi release tag, e.g. "1.6.0".
+func latestPiVersion() (string, error) {
+	client, err := httpClientFromEnv()
+	if err != nil {
+		return "", fmt.Errorf("creating http client: %w", err)
+	}
+
+	// Copy the client so the shared instance keeps its redirect behaviour.
+	noRedirect := *client
+	noRedirect.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+		return http.ErrUseLastResponse
+	}
+
+	req, err := http.NewRequest(http.MethodGet, piLatestReleaseURL, nil)
+	if err != nil {
+		return "", fmt.Errorf("create request for %s error: %w", piLatestReleaseURL, err)
+	}
+	resp, err := noRedirect.Do(req)
+	if err != nil {
+		return "", fmt.Errorf("resolve latest pi release from %s error: %w", piLatestReleaseURL, err)
+	}
+	defer resp.Body.Close()
+
+	location := resp.Header.Get("Location")
+	if location == "" {
+		return "", fmt.Errorf("resolve latest pi release from %s: unexpected status %s", piLatestReleaseURL, resp.Status)
+	}
+
+	u, err := url.Parse(location)
+	if err != nil {
+		return "", fmt.Errorf("parse release location %s error: %w", location, err)
+	}
+	version := normalizePiVersion(path.Base(u.Path))
+	if version == "" {
+		return "", fmt.Errorf("resolve latest pi release from %s: no version in %s", piLatestReleaseURL, location)
+	}
+
+	return version, nil
+}
+
+// installedPiVersion reads the version recorded in the installed archive's
+// package.json. It returns "" when pi is not installed or the metadata is
+// unreadable, which makes the caller reinstall.
+func installedPiVersion(piDir string) string {
+	content, err := os.ReadFile(filepath.Join(piDir, "package.json"))
+	if err != nil {
+		return ""
+	}
+
+	var pkg struct {
+		Version string `json:"version"`
+	}
+	if err := json.Unmarshal(content, &pkg); err != nil {
+		return ""
+	}
+
+	return strings.TrimSpace(pkg.Version)
 }
 
 // appendPathToUserShellRc prepends binDir to PATH in the shell rc files that
@@ -130,12 +213,10 @@ func appendPathToUserShellRc(binDir string) error {
 	return nil
 }
 
+// normalizePiVersion trims spaces and a leading "v". An empty result means
+// "resolve the latest release".
 func normalizePiVersion(version string) string {
-	version = strings.TrimSpace(version)
-	if version == "" {
-		return defaultPiVersion
-	}
-	return strings.TrimPrefix(version, "v")
+	return strings.TrimPrefix(strings.TrimSpace(version), "v")
 }
 
 // piArchive maps a GOOS-GOARCH pair to the Pi release archive name and the

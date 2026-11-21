@@ -30,7 +30,7 @@ Notable commands / caveats to avoid mistakes
   - Append `export PATH=$PATH:$HOME/tools/opencode` to shell rc files (.bashrc, .zshrc) it finds — this mutates user files.
   - It only supports these platform strings: darwin-arm64, darwin-amd64, linux-arm64, linux-amd64, windows-arm64, windows-amd64. It requires `tar` or `unzip`.
 
-- `aka pi install` installs the standalone Pi Coding Agent CLI (no Node.js required): it downloads the platform archive from `earendil-works/pi` releases into `$HOME/tools/pi` and appends that dir to PATH in the rc files that exist. Re-run with `--force` to upgrade, and `--version` to pin a release.
+- `aka pi install` installs the standalone Pi Coding Agent CLI (no Node.js required): it resolves the latest release (GitHub `/releases/latest` redirect, no API token needed), downloads the platform archive from `earendil-works/pi` into `$HOME/tools/pi`, and appends that dir to PATH in the rc files that exist. Without `--version` it also upgrades when the installed `package.json` version differs; `--version X.Y.Z` pins a release and `--force` reinstalls.
 
 Where to edit
 - Add or change CLI behavior: prefer pkg/cmd for subcommand logic and cmd/aka for wiring the Cobra commands.
